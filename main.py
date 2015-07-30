@@ -16,21 +16,22 @@ class Review:
     def __init__(self, row):
         if not isinstance(row, list) or len(row) != 15:
             raise ValueError
-        self.package_name        = row[0].strip()
-        self.app_version         = row[1].strip()
-        self.review_lang         = row[2].strip()
-        self.device_type         = row[3].strip()
-        self.review_date         = row[4].strip()
-        self.review_epoch        = long(row[5].strip()) if row[5] else 0
-        self.review_update_date  = row[6].strip()
-        self.review_update_epoch = long(row[7].strip()) if row[7] else 0
-        self.review_rating       = int(row[8].strip()) if row[8] else 0
-        self.review_title        = row[9].strip()
-        self.review_text         = row[10].strip()
-        self.dev_reply_date      = row[11].strip()
-        self.dev_reply_epoch     = long(row[12].strip()) if row[12] else 0
-        self.dev_reply_text      = row[13].strip()
-        self.review_link         = row[14].strip()
+        row = [r.strip() for r in row]
+        self.package_name        = row[0]
+        self.app_version         = row[1]
+        self.review_lang         = row[2]
+        self.device_type         = row[3]
+        self.review_date         = row[4]
+        self.review_epoch        = row[5]
+        self.review_update_date  = row[6]
+        self.review_update_epoch = row[7]
+        self.review_rating       = row[8]
+        self.review_title        = row[9]
+        self.review_text         = row[10]
+        self.dev_reply_date      = row[11]
+        self.dev_reply_epoch     = row[12]
+        self.dev_reply_text      = row[13]
+        self.review_link         = row[14]
 
     def __str__(self):
         edited_string = " (edited)" if self.review_update_epoch > self.review_epoch else ""
@@ -38,21 +39,73 @@ class Review:
 
         print self.get_rating_stars()
         print "V{}, posted on {}{}".format(
-            self.app_version  if self.app_version else "?",
+            self.app_version if self.app_version else "?",
             post_time,
             edited_string)
         print "*{}* {}".format(self.review_title, self.review_text)
         return ""
 
+    def get_app_version(self, prepend = "V"):
+        if self.app_version:
+            return "{}{}".format(prepend, self.app_version)
+        return ""
+
+    def get_language(self):
+        return self.review_lang
+
+    def get_device_type(self):
+        return self.device_type
+
+    def get_review_date(self, format = "%b %d %H:%M"):
+        if self.review_epoch:
+            return time.strftime(format, time.localtime(long(self.review_epoch)))
+        return ""
+
+    def get_review_update_date(self, format = "%b %d %H:%M"):
+        if self.review_update_epoch:
+            return time.strftime(format, time.localtime(long(self.review_update_epoch)))
+        return ""
+
+    def get_review_update_date(self, format = "%b %d %H:%M"):
+        if self.review_update_epoch:
+            return time.strftime(format, time.localtime(long(self.review_update_epoch)))
+        return ""
+
+    def get_dev_reply_date(self, format = "%b %d %H:%M"):
+        if self.dev_reply_epoch:
+            return time.strftime(format, time.localtime(long(self.dev_reply_epoch)))
+        return ""
+
+    def get_review_text(self):
+        if self.review_text:
+            return self.review_text
+        return ""
+
+    def get_review_title(self):
+        if self.review_title:
+            return self.review_title
+        return ""
+
+    def get_review_link(self):
+        if self.review_link:
+            return self.review_link
+        return ""
+
     def get_post_epoch(self):
         return max(self.review_epoch, self.review_update_epoch)
 
+    def get_rating(self):
+        return int(self.review_rating)
+
     def get_rating_stars(self):
-        return BLACK_STAR * self.review_rating + WHITE_STAR * (5 - self.review_rating)
+        return BLACK_STAR * self.get_rating() + WHITE_STAR * (5 - self.get_rating())
 
 class ReviewStatistics:
     def __init__(self, reviews):
         self._reviews = reviews
+
+    def add(self, review):
+        self._reviews.append(review)
 
     def process(self):
         stars = 0
