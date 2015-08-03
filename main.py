@@ -152,8 +152,10 @@ class ReviewDb:
         self.db_cursor.execute('SELECT * from {} WHERE id={}'.format(self.table, review.id))
         return self.db_cursor.rowcount > 0
 
-    def save(self, review):
+    def insert(self, review, update_if_exists=True):
         assert isinstance(review, Review)
+        if update_if_exists and self.row_exists(review):
+            replace = True
         params = {}
         value_keys = []
         named_placeholder = []
@@ -161,8 +163,13 @@ class ReviewDb:
             params[col] = getattr(review, col)
             value_keys.append(col)
             named_placeholder.append(':%s' % col)
-        sql = 'INSERT INTO {} ({}) VALUES ({})'.format(self.table, ','.join(value_keys), ','.join(named_placeholder))
+        if replace:
+            sql = 'UPDATE {} ({}) SET {} WHERE id={}' # todo WIP. if update_if_exists is false, then breaks the uniqueness of id
+        else:
+            sql = 'INSERT INTO {} ({}) VALUES ({})'.format(self.table, ','.join(value_keys), ','.join(named_placeholder))
         self.db_cursor.execute(sql, params)
+
+    def save(self):
         self.db_conn.commit()
 
     def close(self):
@@ -170,7 +177,6 @@ class ReviewDb:
         self.db_conn.close()
 
 if __name__ == '__main__':
-    db = ReviewDb()
     config = ConfigParser.ConfigParser()
     config.read(CONFIG_FILE)
     slack_webhook_url = config.get(CONFIG_KEY, "slack")
@@ -205,6 +211,8 @@ if __name__ == '__main__':
     # os.system('gsutil cp %s .' % review_url)
 
     print "Opening file %s" % review_filename
+    db = ReviewDb()
+
     csvfile = open(review_filename, "rb").read()
     csvfile = csvfile.decode('utf_16_le').encode('utf-8').split("\n")
     csvreader = csv.reader(csvfile)
@@ -215,10 +223,12 @@ if __name__ == '__main__':
         try:
             review = Review(row)
             reviews.append(review)
-            db.save(review)
+            db.insert(review)
+            db.save()
             count += 1
         except ValueError:
             pass
+    db.close()
     print "====="
     print ReviewStatistics(reviews)
     print "Processed %d ratings" % count
