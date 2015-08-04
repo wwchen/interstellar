@@ -15,6 +15,7 @@ from review_statistics import ReviewStatistics
 class ReviewDb:
     def __init__(self):
         self.db_conn = sqlite3.connect(DB_FILE)
+        self.db_conn.row_factory = sqlite3.Row
         self.db_cursor = self.db_conn.cursor()
         self.table = "reviews"
         self.cols = [
@@ -39,24 +40,47 @@ class ReviewDb:
         col_descriptions = [" ".join(col) for col in columns]
         self.db_cursor.execute('CREATE TABLE IF NOT EXISTS {} ({})'.format(self.table, ','.join(col_descriptions)))
 
-    def row_exists(self, review):
+    def get_review_by_id(self, review_id):
+        assert isinstance(review_id, str)
+        self.db_cursor.execute('SELECT * from {} WHERE id="{}" ORDER BY revision DESC'.format(self.table, review_id))
+        return self.db_cursor.fetchall()
+
+    def contains_review(self, review):
+        row = self.get_row_for_review(review)
+        return True if row else False
+
+    def get_row_for_review(self, review):
         assert isinstance(review, Review)
-        result = self.db_cursor.execute('SELECT * from {} WHERE id="{}" ORDER BY revision DESC'.format(self.table, review.id))
-        for row in result:
-            for header in row.keys():
-                if hasattr(review, header):
-                    if getattr(review, header) == row[header]:
-                        print header, "are equal"
-                        print row
-                        print review
-                    else:
-                        print header, "are not equal"
-        return self.db_cursor.rowcount > 0
+        rows = self.get_review_by_id(review.id)
+        for row in rows:
+            assert isinstance(row, sqlite3.Row)
+            is_row_equal = True
+            for col in row.keys():
+                if hasattr(review, col):
+                    row_value = str(row[col])
+                    review_value = str(getattr(review, col))
+                    if row_value != review_value:
+                        is_row_equal = False
+                        break
+            if is_row_equal:
+                return True
+        return False
+
+    def get_revision_count_for_review(self, review):
+        rows = self.get_review_by_id(review.id)
+        if rows:
+            # NOTE: assumes that get_review_by_id is sorted in descending order
+            first_row = rows[0]
+            assert isinstance(first_row, sqlite3.Row)
+            assert 'revision' in first_row.keys()
+            return int(first_row['revision'])
+        return 0
 
     def insert(self, review):
         assert isinstance(review, Review)
-        if self.row_exists(review):
+        if self.contains_review(review):
             return
+        next_revision = self.get_revision_count_for_review(review) + 1
         params = {}
         value_keys = []
         named_placeholder = []
@@ -65,15 +89,12 @@ class ReviewDb:
             if hasattr(review, col_name):
                 params[col_name] = getattr(review, col_name)
             elif col_name == "revision":
-                params[col_name] = 1
+                params[col_name] = next_revision
             else:
                 raise AttributeError("Unhandled column")
 
             value_keys.append(col_name)
             named_placeholder.append(':%s' % col_name)
-            # if replace:
-            #     sql = 'UPDATE {} ({}) SET {} WHERE id={}' # todo WIP. if update_if_exists is false, then breaks the uniqueness of id
-            # else:
             sql = 'INSERT INTO {} ({}) VALUES ({})'.format(self.table, ','.join(value_keys), ','.join(named_placeholder))
         self.db_cursor.execute(sql, params)
 
