@@ -10,7 +10,7 @@ import sqlite3
 import re
 from utils import *
 from review import Review
-from review_statistics import ReviewStatistics
+
 
 class ReviewDb:
     def __init__(self):
@@ -97,6 +97,7 @@ class ReviewDb:
             named_placeholder.append(':%s' % col_name)
             sql = 'INSERT INTO {} ({}) VALUES ({})'.format(self.table, ','.join(value_keys), ','.join(named_placeholder))
         self.db_cursor.execute(sql, params)
+        return next_revision
 
     def save(self):
         self.db_conn.commit()

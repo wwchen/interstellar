@@ -2,16 +2,22 @@
 
 from utils import *
 from review import Review
+from review_db import ReviewDb
 
 
-class ReviewStatistics:
-    def __init__(self, reviews):
-        self._reviews = reviews
+class ReviewProcessor:
+    def __init__(self, database):
+        # todo sanity assert database object
+        self._db = database
+        self._reviews = []
         self._avg_stars = 0
         self._notable_reviews = None
 
     def add(self, review):
         assert isinstance(review, Review)
+        if self._db.contains_review(review):
+            return
+        revision = self._db.insert(review)
         self._reviews.append(review)
 
     def process(self):
