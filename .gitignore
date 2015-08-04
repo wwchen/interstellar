@@ -3,3 +3,6 @@
 .DS_Store
 *.csv
 *.sqlite3
+*.pyc
+.idea
+*.swp
