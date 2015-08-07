@@ -31,7 +31,13 @@ class Review:
                 continue
             attr_type = self._attrs[attr]
             value = data[attr]
-            setattr(self, attr, attr_type(value))
+            if value:
+                try:
+                    setattr(self, attr, attr_type(value))
+                except ValueError:
+                    print "Cannot cast {} to {}: {}".format(attr, attr_type, value)
+            else:
+                setattr(self, attr, None)
         self.id = self._get_id()
 
     def _get_id(self):

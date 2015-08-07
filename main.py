@@ -105,14 +105,11 @@ if __name__ == '__main__':
     for row in csvreader:
         if not row:
             continue
-        try:
-            review_data = process_csv_row(row)
-            review = Review(review_data)
-            reviews.append(review)
-            processor.add(review)
-            count += 1
-        except ValueError:
-            pass
+        review_data = process_csv_row(row)
+        review = Review(review_data)
+        reviews.append(review)
+        processor.add(review)
+        count += 1
     processor.process()
     print "====="
     print processor
