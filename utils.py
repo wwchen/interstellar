@@ -17,3 +17,4 @@ def get_time(epoch_time, fmt="%b %d %H:%M"):
 
 def get_rating_stars(stars, max_stars=5):
     return BLACK_STAR * stars + WHITE_STAR * (max_stars - stars)
+

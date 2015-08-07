@@ -5,11 +5,49 @@ import re
 
 
 class Review:
-    def __init__(self, cols):
+    def __init__(self, data):
+        self.attrs_optional = [
+            ('id',                  'TEXT'),
+            ('revision',            'INTEGER')
+        ]
+        self.attrs_required = [
+            ('package_name',        'TEXT'),
+            ('app_version',         'TEXT'),
+            ('review_lang',         'TEXT'),
+            ('device_type',         'TEXT'),
+            ('review_epoch',        'INTEGER'),
+            ('review_update_epoch', 'INTEGER'),
+            ('review_rating',       'INTEGER'),
+            ('review_title',        'TEXT'),
+            ('review_text',         'TEXT'),
+            ('dev_reply_epoch',     'INTEGER'),
+            ('dev_reply_text',      'TEXT'),
+            ('review_link',         'TEXT')
+        ]
+        self.type_mapping = {
+            'TEXT': str,
+            'INTEGER': long
+        }
+        # todo input is dict, process them and store as attributes
+
+    def __eq__(self, other):
+        if not isinstance(other, Review):
+            return False
+        for attr_tuple in self.attrs_required:
+            attr, attr_type = attr_tuple
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+
+    def __init(self, cols):
         if not isinstance(cols, list) or len(cols) != 15:
+            print type(cols)
             raise ValueError
         self.data = {}
         self.id = None
+        # todo add revision
+        self.revision = None
         self.col_headers = [
             'package_name',
             'app_version',

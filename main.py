@@ -82,7 +82,8 @@ if __name__ == '__main__':
             count += 1
         except ValueError:
             pass
+    processor.process()
     db.close()
     print "====="
-    print ReviewProcessor(reviews)
+    print processor
     print "Processed %d reviews" % count
