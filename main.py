@@ -13,6 +13,34 @@ from review_db import ReviewDb
 from review_processor import ReviewProcessor
 from utils import *
 
+
+def process_csv_row(row):
+    headers = [
+        'package_name',
+        'app_version',
+        'review_lang',
+        'device_type',
+        'review_date',
+        'review_epoch',
+        'review_update_date',
+        'review_update_epoch',
+        'review_rating',
+        'review_title',
+        'review_text',
+        'dev_reply_date',
+        'dev_reply_epoch',
+        'dev_reply_text',
+        'review_link'
+    ]
+    assert isinstance(row, list)
+    if len(row) is not len(headers):
+        print "Row is not valid:", row
+        return
+    data = {}
+    for i, header in enumerate(headers):
+        data[header] = row[i]
+    return data
+
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
     config.read(CONFIG_FILE)
@@ -75,15 +103,20 @@ if __name__ == '__main__':
     reviews = []
     processor = ReviewProcessor(db)
     for row in csvreader:
+        if not row:
+            continue
         try:
-            review = Review(row)
+            review_data = process_csv_row(row)
+            review = Review(review_data)
             reviews.append(review)
             processor.add(review)
             count += 1
         except ValueError:
             pass
     processor.process()
-    db.close()
     print "====="
     print processor
     print "Processed %d reviews" % count
+    db.close()
+
+

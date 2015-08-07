@@ -20,10 +20,6 @@ class ReviewProcessor:
     def process(self):
         if not len(self._reviews):
             return
-        reviews_duplicate = []
-        reviews_inserted = []
-
-        # todo check duplicity with the current review
         for review in self._reviews:
             review_fetched = self._db.get_review(review.id)
             if review == review_fetched:
@@ -31,12 +27,10 @@ class ReviewProcessor:
             else:
                 self._db.insert(review)
 
-
-        ###
         stars = 0
         notable_reviews = []
         for review in self._reviews:
-            assert isinstance(review.review_rating, long)
+            assert isinstance(review.review_rating, int)
             stars += review.review_rating
             if self._is_review_notable(review):
                 notable_reviews.append(review)

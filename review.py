@@ -1,89 +1,60 @@
 #!/usr/bin/python
 
 from utils import *
+from collections import OrderedDict
 import re
 
 
 class Review:
     def __init__(self, data):
-        self.attrs_optional = [
-            ('id',                  'TEXT'),
-            ('revision',            'INTEGER')
+        self._attrs_generated = [
+            'id'
         ]
-        self.attrs_required = [
-            ('package_name',        'TEXT'),
-            ('app_version',         'TEXT'),
-            ('review_lang',         'TEXT'),
-            ('device_type',         'TEXT'),
-            ('review_epoch',        'INTEGER'),
-            ('review_update_epoch', 'INTEGER'),
-            ('review_rating',       'INTEGER'),
-            ('review_title',        'TEXT'),
-            ('review_text',         'TEXT'),
-            ('dev_reply_epoch',     'INTEGER'),
-            ('dev_reply_text',      'TEXT'),
-            ('review_link',         'TEXT')
-        ]
-        self.type_mapping = {
-            'TEXT': str,
-            'INTEGER': long
-        }
-        # todo input is dict, process them and store as attributes
+        self._attrs = OrderedDict([
+            ('id',                  int),
+            ('package_name',        str),
+            ('app_version',         str),
+            ('review_lang',         str),
+            ('device_type',         str),
+            ('review_epoch',        long),
+            ('review_update_epoch', long),
+            ('review_rating',       int),
+            ('review_title',        str),
+            ('review_text',         str),
+            ('dev_reply_epoch',     long),
+            ('dev_reply_text',      str),
+            ('review_link',         str)
+        ])
+
+        for attr in self._attrs:
+            if attr in self._attrs_generated:
+                continue
+            attr_type = self._attrs[attr]
+            value = data[attr]
+            setattr(self, attr, attr_type(value))
+        self.id = self._get_id()
+
+    def _get_id(self):
+        return re.search('revid=(gp:[a-zA-Z0-9-_]*)', self.review_link).group(1)
+
+    def get_attrs(self):
+        return self._attrs.keys()
+
+    def get_attr_with_type(self):
+        return self._attrs
 
     def __eq__(self, other):
         if not isinstance(other, Review):
             return False
-        for attr_tuple in self.attrs_required:
-            attr, attr_type = attr_tuple
+        for attr in self._attrs.keys():
             if getattr(self, attr) != getattr(other, attr):
                 return False
         return True
 
-
-    def __init(self, cols):
-        if not isinstance(cols, list) or len(cols) != 15:
-            print type(cols)
-            raise ValueError
-        self.data = {}
-        self.id = None
-        # todo add revision
-        self.revision = None
-        self.col_headers = [
-            'package_name',
-            'app_version',
-            'review_lang',
-            'device_type',
-            'review_date',
-            'review_epoch',
-            'review_update_date',
-            'review_update_epoch',
-            'review_rating',
-            'review_title',
-            'review_text',
-            'dev_reply_date',
-            'dev_reply_epoch',
-            'dev_reply_text',
-            'review_link'
-        ]
-        for i, header in enumerate(self.col_headers):
-            value = cols[i].strip()
-            try:
-                value = long(value)
-            except ValueError:
-                value.encode(ENCODING)
-            finally:
-                self.data[header] = value
-                setattr(self, header, value)
-        try:
-            self.id = re.search('revid=(gp:[a-zA-Z0-9-_]*)', self.review_link).group(1)
-            assert isinstance(self.id, str) and self.id
-        except AttributeError:
-            print self.review_link
-
     def __str__(self):
         posted_time = self.review_update_epoch or self.review_epoch
         edited_string = " (edited)" if self.review_update_epoch > self.review_epoch else ""
-        replied_string = " (replied)" if self.dev_reply_date else ""
+        replied_string = " (replied)" if self.dev_reply_epoch else ""
 
         print get_rating_stars(self.review_rating)
         print "V{}, posted on {}{}{}".format(
