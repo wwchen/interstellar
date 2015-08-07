@@ -66,11 +66,21 @@ class ReviewDb:
             col_headers.append(col_header)
             col_placeholders.append(':%s' % col_header)
         if self.contains_review(review):
-            sql = 'UPDATE {} SET ({}) VALUES ({}) WHERE id="{}"'
+            set_expr = ["{}={}".format(col_headers[i], col_placeholders[i]) for i in range(len(self.cols))]
+            sql = 'UPDATE {} SET {} WHERE id="{}"'.\
+                format(self.table, ','.join(set_expr), col_values['id'])
         else:
-            sql = 'INSERT INTO {} ({}) VALUES ({})'
-        sql = sql.format(self.table, ','.join(col_headers), ','.join(col_placeholders))
-        self.db_cursor.execute(sql, col_values)
+            sql = 'INSERT INTO {} ({}) VALUES ({})'.\
+                format(self.table, ','.join(col_headers), ','.join(col_placeholders))
+        assert len(col_headers) == len(col_placeholders)
+        assert len(col_headers) == len(col_values)
+        try:
+            self.db_cursor.execute(sql, col_values)
+        except sqlite3.OperationalError as e:
+            print sql
+            print col_values
+            raise e
+
 
     def get_review(self, review_id):
         """

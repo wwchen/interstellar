@@ -8,6 +8,7 @@ import csv
 import codecs
 import sqlite3
 import re
+import sys
 from review import Review
 from review_db import ReviewDb
 from review_processor import ReviewProcessor
@@ -93,6 +94,9 @@ if __name__ == '__main__':
         print "Copying this month's csv to %s" % local_review_path
         os.system('gsutil cp %s %s' % (remote_review_path, local_review_path))
 
+    # todo put in the right place
+    if len(sys.argv) > 1:
+        local_review_path = sys.argv[1]
     print "Opening file %s" % local_review_path
     csvfile = open(local_review_path, "rb").read()
     csvfile = csvfile.decode('utf_16_le').encode('utf-8').split("\n")
