@@ -12,6 +12,7 @@ class ReviewProcessor:
         self._reviews = []
         self._avg_stars = 0
         self._notable_reviews = None
+        self._count_new = 0
 
     def add(self, review):
         assert isinstance(review, Review)
@@ -26,6 +27,7 @@ class ReviewProcessor:
                 pass
             else:
                 self._db.insert(review)
+                self._count_new += 1
 
         stars = 0
         notable_reviews = []
@@ -55,6 +57,6 @@ class ReviewProcessor:
             else:
                 break
             count -= 1
-        return "Overall stats: %0.2f stars" % (self._avg_stars)
+        return "Overall stats: %0.2f stars\nNew reviews: %d" % (self._avg_stars, self._count_new)
 
 
