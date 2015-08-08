@@ -1,8 +1,5 @@
-#!/usr/bin/python
-
-from utils import *
-from review import Review
-from review_db import Result
+from PlayStoreReview.Review import Review
+from Database import Result
 
 
 class ReviewProcessor:

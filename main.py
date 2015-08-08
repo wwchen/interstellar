@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 
-import boto
 import ConfigParser
 import os
-import time
 import csv
-import codecs
-import sqlite3
-import re
 import sys
-from review import Review
-from review_db import ReviewDb
-from review_processor import ReviewProcessor
+from PlayStoreReview.Review import Review
+from PlayStoreReview.Processor import ReviewProcessor
+from PlayStoreReview.Database.Interface import DatabaseInterface
 from utils import *
 
 
@@ -103,7 +98,7 @@ if __name__ == '__main__':
     csvreader = csv.reader(csvfile)
     csvreader.next()  # skip the header
     count = 0
-    db = ReviewDb()
+    db = DatabaseInterface()
     reviews = []
     processor = ReviewProcessor(db)
     for row in csvreader:

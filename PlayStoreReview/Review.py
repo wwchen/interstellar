@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from utils import *
 from collections import OrderedDict
 import re
