@@ -2,7 +2,7 @@
 
 from utils import *
 from review import Review
-from review_db import ReviewDb
+from review_db import Result
 
 
 class ReviewProcessor:
@@ -26,8 +26,9 @@ class ReviewProcessor:
             if review == review_fetched:
                 pass
             else:
-                self._db.insert(review)
-                self._count_new += 1
+                result = self._db.insert(review)
+                if result == Result.inserted:
+                    self._count_new += 1
 
         stars = 0
         notable_reviews = []

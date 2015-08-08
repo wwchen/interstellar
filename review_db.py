@@ -3,6 +3,13 @@
 import sqlite3
 from utils import *
 from review import Review
+from enum import Enum
+
+
+class Result(Enum):
+    failed = 1
+    inserted = 2
+    updated = 3
 
 
 class ReviewDb:
@@ -69,18 +76,20 @@ class ReviewDb:
             set_expr = ["{}={}".format(col_headers[i], col_placeholders[i]) for i in range(len(self.cols))]
             sql = 'UPDATE {} SET {} WHERE id="{}"'.\
                 format(self.table, ','.join(set_expr), col_values['id'])
+            result = Result.updated
         else:
             sql = 'INSERT INTO {} ({}) VALUES ({})'.\
                 format(self.table, ','.join(col_headers), ','.join(col_placeholders))
+            result = Result.inserted
         assert len(col_headers) == len(col_placeholders)
         assert len(col_headers) == len(col_values)
         try:
             self.db_cursor.execute(sql, col_values)
+            return result
         except sqlite3.OperationalError as e:
             print sql
             print col_values
             raise e
-
 
     def get_review(self, review_id):
         """
