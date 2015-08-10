@@ -1,6 +1,8 @@
 import sqlite3
-from utils import *
+from PlayStoreReview.Database.Result import Result
 from PlayStoreReview.Review import Review
+from utils import *
+
 
 class DatabaseInterface:
     def __init__(self):

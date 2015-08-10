@@ -1,5 +1,5 @@
+from PlayStoreReview.Database.Result import Result
 from PlayStoreReview.Review import Review
-from Database import Result
 
 
 class ReviewProcessor:
